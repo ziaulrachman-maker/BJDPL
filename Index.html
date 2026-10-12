@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Monitoring & Evaluasi BJDPL/MDPL - CRS Area Gorontalo</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: '#0f2347',
+            navyDark: '#0a162b',
+            navyLight: '#1e3a8a'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .bg-navy {
+      background-color: #0f2347;
+    }
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .nav-item-active {
+      background-color: #2563eb !important;
+      color: #ffffff !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased h-screen flex overflow-hidden">
+
+  <!-- Mobile Sidebar Backdrop -->
+  <div id="mobileBackdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden hidden transition-opacity duration-300"></div>
+
+  <!-- Sidebar Navigation -->
+  <aside id="mainSidebar" class="w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 z-50 fixed inset-y-0 left-0 lg:static lg:translate-x-0 -translate-x-full transition-transform duration-300 ease-in-out border-r border-slate-800 shadow-xl lg:shadow-none">
+    
+    <!-- Sidebar Header / Branding -->
+    <div class="h-16 flex items-center justify-between px-5 border-b border-slate-800 bg-slate-950/40">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+          <i class="fa-solid fa-chart-line text-sm"></i>
+        </div>
+        <div>
+          <h2 class="text-xs font-bold text-white tracking-wide uppercase">CRS Area Gorontalo</h2>
+          <p class="text-[10px] text-blue-400 font-medium">BJDPL / MDPL System</p>
+        </div>
+      </div>
+      <button onclick="toggleMobileSidebar()" class="lg:hidden text-slate-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Navigation Menu Items -->
+    <nav class="flex-1 px-3 py-5 space-y-1.5 overflow-y-auto">
+      <a href="#" onclick="switchPage('dashboard', event)" id="nav-dashboard" class="nav-item-active flex items-center px-3.5 py-2.5 rounded-lg text-xs font-semibold text-white transition">
+        <i class="fa-solid fa-gauge-high w-6 text-sm"></i>
+        <span>Dashboard Monitoring</span>
+      </a>
+      <a href="#" onclick="switchPage('eval-bjdpl', event)" id="nav-eval-bjdpl" class="flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-table-cells w-6 text-sm"></i>
+        <span>Evaluasi BJDPL</span>
+      </a>
+      <a href="#" onclick="switchPage('eval-rasio', event)" id="nav-eval-rasio" class="flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-percent w-6 text-sm"></i>
+        <span>Evaluasi Rasio BJDPL</span>
+      </a>
+      <a href="#" onclick="switchPage('bjdpl-produk', event)" id="nav-bjdpl-produk" class="flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-boxes-stacked w-6 text-sm"></i>
+        <span>BJDPL per Produk</span>
+      </a>
+    </nav>
+
+    <!-- Sidebar Bottom Footer -->
+    <div class="p-4 border-t border-slate-800 bg-slate-950/20 space-y-3">
+      <div class="flex items-center space-x-3 px-1">
+        <div class="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs ring-1 ring-blue-500/30">
+          <i class="fa-solid fa-building-columns"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-xs font-bold text-white truncate" id="sidebarAreaLabel">Area Gorontalo / Manado</p>
+          <p class="text-[10px] text-emerald-400 font-medium flex items-center">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+            Live Terhubung
+          </p>
+        </div>
+      </div>
+
+      <button onclick="runSetupDatabase()" class="w-full flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white py-2 px-3 rounded-lg text-[11px] font-medium transition border border-slate-700">
+        <i class="fa-solid fa-database text-xs text-blue-400"></i>
+        <span>Inisialisasi Sheet Database</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Content Area -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    
+    <!-- Top Header bar -->
+    <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 sm:px-6 shadow-sm z-10 flex-shrink-0">
+      <div class="flex items-center space-x-3">
+        <button onclick="toggleMobileSidebar()" class="lg:hidden text-slate-600 hover:text-slate-900 p-2 rounded-lg hover:bg-slate-100 focus:outline-none">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+        <div>
+          <h1 id="pageTitle" class="text-base sm:text-lg font-bold text-slate-800">Dashboard Monitoring BJDPL</h1>
+          <p class="text-[11px] text-slate-500 hidden sm:block">Pemantauan Kualitas Baki Debet Jatuh Tempo Pembayaran Lancar</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <span id="lastUpdatedBadge" class="text-[11px] text-slate-500 bg-slate-100 px-2.5 py-1.5 rounded-md border border-slate-200 hidden md:inline-flex items-center">
+          <i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>
+          <span id="lastUpdatedText">Sinkronisasi...</span>
+        </span>
+
+        <button onclick="refreshData()" id="btnRefresh" class="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold flex items-center space-x-2 shadow-sm transition active:scale-95">
+          <i class="fa-solid fa-rotate" id="refreshIcon"></i>
+          <span>Refresh Data</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Viewport -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+      
+      <!-- Global Filter Panel (Dengan Fitur Pilihan Multi-Select) -->
+      <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 relative z-30">
+        
+        <!-- Filter 1: Tanggal Data -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tanggal Data</label>
+          <select id="filterTanggal" onchange="applyFilters()" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-600 focus:outline-none font-medium">
+            <option value="hariIni">Hari Ini</option>
+            <option value="kemarin">Kemarin</option>
+          </select>
+        </div>
+
+        <!-- Filter 2: Area (Multi-Select) -->
+        <div class="relative" id="containerAreaDropdown">
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Area</label>
+          <button type="button" onclick="toggleDropdown('areaDropdown')" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-left flex items-center justify-between focus:ring-2 focus:ring-blue-600 focus:outline-none hover:bg-slate-100 transition">
+            <span id="labelAreaSelect" class="truncate font-medium text-slate-700">Semua Area</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-1.5 flex-shrink-0"></i>
+          </button>
+          <div id="areaDropdown" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2.5 space-y-2 max-h-72 flex flex-col min-w-[210px]">
+            <input type="text" oninput="filterDropdownSearch('areaList', this.value)" placeholder="Cari area..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <div class="flex items-center justify-between px-1 text-[11px] font-semibold text-blue-600 border-b border-slate-100 pb-1.5">
+              <button type="button" onclick="selectAllFilter('area')">Pilih Semua</button>
+              <button type="button" onclick="deselectAllFilter('area')" class="text-slate-500 hover:text-slate-800">Hapus Semua</button>
+            </div>
+            <div id="areaList" class="overflow-y-auto space-y-1 flex-1 max-h-44 pr-1"></div>
+          </div>
+        </div>
+
+        <!-- Filter 3: Cabang (Multi-Select) -->
+        <div class="relative" id="containerCabangDropdown">
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Cabang</label>
+          <button type="button" onclick="toggleDropdown('cabangDropdown')" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-left flex items-center justify-between focus:ring-2 focus:ring-blue-600 focus:outline-none hover:bg-slate-100 transition">
+            <span id="labelCabangSelect" class="truncate font-medium text-slate-700">Semua Cabang</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-1.5 flex-shrink-0"></i>
+          </button>
+          <div id="cabangDropdown" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2.5 space-y-2 max-h-72 flex flex-col min-w-[210px]">
+            <input type="text" oninput="filterDropdownSearch('cabangList', this.value)" placeholder="Cari cabang..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <div class="flex items-center justify-between px-1 text-[11px] font-semibold text-blue-600 border-b border-slate-100 pb-1.5">
+              <button type="button" onclick="selectAllFilter('cabang')">Pilih Semua</button>
+              <button type="button" onclick="deselectAllFilter('cabang')" class="text-slate-500 hover:text-slate-800">Hapus Semua</button>
+            </div>
+            <div id="cabangList" class="overflow-y-auto space-y-1 flex-1 max-h-44 pr-1"></div>
+          </div>
+        </div>
+
+        <!-- Filter 4: Unit Kerja (Multi-Select) -->
+        <div class="relative" id="containerUnitDropdown">
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Unit Kerja</label>
+          <button type="button" onclick="toggleDropdown('unitDropdown')" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-left flex items-center justify-between focus:ring-2 focus:ring-blue-600 focus:outline-none hover:bg-slate-100 transition">
+            <span id="labelUnitSelect" class="truncate font-medium text-slate-700">Semua Unit Kerja</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-1.5 flex-shrink-0"></i>
+          </button>
+          <div id="unitDropdown" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2.5 space-y-2 max-h-72 flex flex-col min-w-[220px]">
+            <input type="text" oninput="filterDropdownSearch('unitList', this.value)" placeholder="Cari unit..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <div class="flex items-center justify-between px-1 text-[11px] font-semibold text-blue-600 border-b border-slate-100 pb-1.5">
+              <button type="button" onclick="selectAllFilter('unit')">Pilih Semua</button>
+              <button type="button" onclick="deselectAllFilter('unit')" class="text-slate-500 hover:text-slate-800">Hapus Semua</button>
+            </div>
+            <div id="unitList" class="overflow-y-auto space-y-1 flex-1 max-h-44 pr-1"></div>
+          </div>
+        </div>
+
+        <!-- Filter 5: Produk (Multi-Select) -->
+        <div class="relative" id="containerProdukDropdown">
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Produk</label>
+          <button type="button" onclick="toggleDropdown('produkDropdown')" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-left flex items-center justify-between focus:ring-2 focus:ring-blue-600 focus:outline-none hover:bg-slate-100 transition">
+            <span id="labelProdukSelect" class="truncate font-medium text-slate-700">Semua Produk</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-1.5 flex-shrink-0"></i>
+          </button>
+          <div id="produkDropdown" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2.5 space-y-2 max-h-72 flex flex-col min-w-[210px]">
+            <input type="text" oninput="filterDropdownSearch('produkList', this.value)" placeholder="Cari produk..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <div class="flex items-center justify-between px-1 text-[11px] font-semibold text-blue-600 border-b border-slate-100 pb-1.5">
+              <button type="button" onclick="selectAllFilter('produk')">Pilih Semua</button>
+              <button type="button" onclick="deselectAllFilter('produk')" class="text-slate-500 hover:text-slate-800">Hapus Semua</button>
+            </div>
+            <div id="produkList" class="overflow-y-auto space-y-1 flex-1 max-h-44 pr-1"></div>
+          </div>
+        </div>
+
+        <!-- Filter 6: Reset Filter Button -->
+        <div class="flex items-end">
+          <button onclick="resetFilters()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-lg text-xs font-semibold transition border border-slate-300 flex items-center justify-center space-x-1.5 active:scale-95">
+            <i class="fa-solid fa-filter-circle-xmark"></i>
+            <span>Reset Filter</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- PAGE 1: DASHBOARD MONITORING -->
+      <div id="page-dashboard" class="page-content space-y-6">
+        
+        <!-- KPI Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total BJDPL Hari Ini</p>
+              <span class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm">
+                <i class="fa-solid fa-calendar-day"></i>
+              </span>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mt-2" id="kpiBjdplHariIni">Rp 0</h3>
+            <p class="text-[11px] text-slate-400 mt-1">Posisi mutasi baki debet hari ini</p>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total BJDPL Kemarin</p>
+              <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-sm">
+                <i class="fa-solid fa-calendar-minus"></i>
+              </span>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mt-2" id="kpiBjdplKemarin">Rp 0</h3>
+            <p class="text-[11px] text-slate-400 mt-1">Posisi mutasi baki debet kemarin</p>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Progres Penurunan</p>
+              <span id="kpiBadgeProgres" class="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center text-sm">
+                <i class="fa-solid fa-arrow-trend-down"></i>
+              </span>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold text-green-600 mt-2" id="kpiProgresPenurunan">Rp 0</h3>
+            <p class="text-[11px] text-slate-500 mt-1" id="kpiProgresDesc">Penurunan BJDPL (Kemarin - Hari Ini)</p>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Rasio BJDPL / OSL</p>
+              <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">
+                <i class="fa-solid fa-percent"></i>
+              </span>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold text-indigo-600 mt-2" id="kpiRasioBjdpl">0,00%</h3>
+            <p class="text-[11px] text-slate-400 mt-1" id="kpiOslTotalDesc">Terhadap OSL Total</p>
+          </div>
+        </div>
+
+        <!-- Umur Piutang KPI Grid (7 Buckets) -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Distribusi Kelompok Umur BJDPL</h4>
+            <span class="text-[11px] text-slate-400" id="umurLabelActive">Berdasarkan data terpilih</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+            <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-500">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">1–15 Hari</span>
+              <p class="text-sm font-bold text-slate-800 mt-1 truncate" id="kpiUmur1">Rp 0</p>
+            </div>
+            <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-sky-500">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">16–30 Hari</span>
+              <p class="text-sm font-bold text-slate-800 mt-1 truncate" id="kpiUmur2">Rp 0</p>
+            </div>
+            <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-amber-500">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">31–45 Hari</span>
+              <p class="text-sm font-bold text-slate-800 mt-1 truncate" id="kpiUmur3">Rp 0</p>
+            </div>
+            <div class="bg-orange-50/70 p-3.5 rounded-xl shadow-sm border border-orange-200 border-l-4 border-l-orange-500">
+              <span class="text-[10px] font-bold text-orange-700 uppercase tracking-wider block">46–60 Hari</span>
+              <p class="text-sm font-bold text-orange-950 mt-1 truncate" id="kpiUmur4">Rp 0</p>
+            </div>
+            <div class="bg-orange-50/70 p-3.5 rounded-xl shadow-sm border border-orange-200 border-l-4 border-l-orange-600">
+              <span class="text-[10px] font-bold text-orange-700 uppercase tracking-wider block">61–75 Hari</span>
+              <p class="text-sm font-bold text-orange-950 mt-1 truncate" id="kpiUmur5">Rp 0</p>
+            </div>
+            <div class="bg-red-50/70 p-3.5 rounded-xl shadow-sm border border-red-200 border-l-4 border-l-rose-500">
+              <span class="text-[10px] font-bold text-red-700 uppercase tracking-wider block">76–90 Hari</span>
+              <p class="text-sm font-bold text-red-950 mt-1 truncate" id="kpiUmur6">Rp 0</p>
+            </div>
+            <div class="bg-red-50/70 p-3.5 rounded-xl shadow-sm border border-red-200 border-l-4 border-l-red-600">
+              <span class="text-[10px] font-bold text-red-700 uppercase tracking-wider block">> 90 Hari</span>
+              <p class="text-sm font-bold text-red-950 mt-1 truncate" id="kpiUmur7">Rp 0</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-bold text-slate-800 flex items-center">
+                <i class="fa-solid fa-chart-bar text-blue-600 mr-2"></i> Perbandingan BJDPL Kemarin vs Hari Ini
+              </h3>
+            </div>
+            <div class="h-64 relative">
+              <canvas id="chartKemarinHariIni"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-bold text-slate-800 flex items-center">
+                <i class="fa-solid fa-chart-pie text-blue-600 mr-2"></i> Komposisi Kelompok Umur BJDPL
+              </h3>
+            </div>
+            <div class="h-64 relative">
+              <canvas id="chartKelompokUmur"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PAGE 2: EVALUASI BJDPL -->
+      <div id="page-eval-bjdpl" class="page-content space-y-6 hidden">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Evaluasi BJDPL per Area & Cabang</h3>
+              <p class="text-[11px] text-slate-400">Rincian umur tunggakan dan progres penurunan</p>
+            </div>
+            <div class="relative w-full sm:w-72">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+              </span>
+              <input type="text" id="searchEvalBjdpl" oninput="renderEvalBjdplTable()" placeholder="Cari area, cabang, atau unit..." class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg pl-9 pr-3 py-2 focus:ring-2 focus:ring-blue-600 focus:outline-none">
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-navy text-white uppercase font-semibold">
+                <tr>
+                  <th class="p-3">Unit Kerja</th>
+                  <th class="p-3 text-right">1-15 Hari</th>
+                  <th class="p-3 text-right">16-30 Hari</th>
+                  <th class="p-3 text-right">31-45 Hari</th>
+                  <th class="p-3 text-right bg-orange-800/50">46-60 Hari</th>
+                  <th class="p-3 text-right bg-orange-800/50">61-75 Hari</th>
+                  <th class="p-3 text-right bg-red-900/50">76-90 Hari</th>
+                  <th class="p-3 text-right bg-red-900/50">> 90 Hari</th>
+                  <th class="p-3 text-right">Total Kemarin</th>
+                  <th class="p-3 text-right">Total Hari Ini</th>
+                  <th class="p-3 text-right">Progres Penurunan</th>
+                </tr>
+              </thead>
+              <tbody id="tableEvalBjdplBody" class="divide-y divide-slate-200"></tbody>
+              <tfoot id="tableEvalBjdplFoot" class="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-300"></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 3: EVALUASI RASIO BJDPL -->
+      <div id="page-eval-rasio" class="page-content space-y-6 hidden">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Evaluasi Rasio BJDPL terhadap OSL Total</h3>
+              <p class="text-[11px] text-slate-400">Analisis porsi BJDPL dan DPK terhadap outstanding loan</p>
+            </div>
+            <div class="relative w-full sm:w-72">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+              </span>
+              <input type="text" id="searchEvalRasio" oninput="renderEvalRasioTable()" placeholder="Cari unit kerja..." class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg pl-9 pr-3 py-2 focus:ring-2 focus:ring-blue-600 focus:outline-none">
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-navy text-white uppercase font-semibold">
+                <tr>
+                  <th class="p-3">Cabang</th>
+                  <th class="p-3 text-right">OSL Total</th>
+                  <th class="p-3 text-right">OSL Lancar</th>
+                  <th class="p-3 text-right">1-15 Hari</th>
+                  <th class="p-3 text-right">16-30 Hari</th>
+                  <th class="p-3 text-right">31-45 Hari</th>
+                  <th class="p-3 text-right bg-orange-800/50">46-60 Hari</th>
+                  <th class="p-3 text-right bg-orange-800/50">61-75 Hari</th>
+                  <th class="p-3 text-right bg-red-900/50">76-90 Hari</th>
+                  <th class="p-3 text-right bg-red-900/50">> 90 Hari</th>
+                  <th class="p-3 text-right font-bold">Total BJDPL</th>
+                  <th class="p-3 text-right font-bold">Rasio BJDPL</th>
+                </tr>
+              </thead>
+              <tbody id="tableEvalRasioBody" class="divide-y divide-slate-200"></tbody>
+              <tfoot id="tableEvalRasioFoot" class="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-300"></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 4: BJDPL PER PRODUK -->
+      <div id="page-bjdpl-produk" class="page-content space-y-6 hidden">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Rincian BJDPL per Produk & Hierarki Unit Kerja</h3>
+              <p class="text-[11px] text-slate-400">Distribusi baki debet berdasarkan jenis produk pembiayaan</p>
+            </div>
+            <div class="relative w-full sm:w-72">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+              </span>
+              <input type="text" id="searchBjdplProduk" oninput="renderBjdplProdukTable()" placeholder="Cari produk / unit kerja..." class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg pl-9 pr-3 py-2 focus:ring-2 focus:ring-blue-600 focus:outline-none">
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-navy text-white uppercase font-semibold">
+                <tr>
+                  <th class="p-3">Area / Cabang / Produk</th>
+                  <th class="p-3 text-right">1-15 Hari</th>
+                  <th class="p-3 text-right">16-30 Hari</th>
+                  <th class="p-3 text-right">31-45 Hari</th>
+                  <th class="p-3 text-right bg-orange-800/50">46-60 Hari</th>
+                  <th class="p-3 text-right bg-orange-800/50">61-75 Hari</th>
+                  <th class="p-3 text-right bg-red-900/50">76-90 Hari</th>
+                  <th class="p-3 text-right bg-red-900/50">> 90 Hari</th>
+                  <th class="p-3 text-right font-bold">Grand Total</th>
+                </tr>
+              </thead>
+              <tbody id="tableBjdplProdukBody" class="divide-y divide-slate-200"></tbody>
+              <tfoot id="tableBjdplProdukFoot" class="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-300"></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg border border-slate-800 flex items-center space-x-3 max-w-sm">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+    <span id="toastMessage" class="text-xs font-medium">Notifikasi</span>
+  </div>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    // State Penyimpanan Data Teragregasi
+    let allRecords = [];
+    let oslRecords = [];
+    
+    // State Pilihan Multi-Select
+    let selectedAreas = [];
+    let selectedCabangs = [];
+    let selectedUnits = [];
+    let selectedProduks = [];
+
+    let chartKemarinHariIniInstance = null;
+    let chartKelompokUmurInstance = null;
+    let currentPage = 'dashboard';
+
+    // Format Rupiah
+    function formatRupiah(amount) {
+      if (amount === undefined || amount === null || isNaN(amount)) return 'Rp 0';
+      const isNegative = amount < 0;
+      const absoluteVal = Math.round(Math.abs(amount));
+      return (isNegative ? '-Rp ' : 'Rp ') + absoluteVal.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    // Format Persentase
+    function formatPercent(value) {
+      if (value === undefined || value === null || isNaN(value)) return '0,00%';
+      return Number(value).toFixed(2).replace('.', ',') + '%';
+    }
+
+    // Filter Dataset Berdasarkan Kontrol Multi-Select
+    function getFilteredRecords() {
+      return allRecords.filter(item => {
+        if (selectedAreas.length > 0 && !selectedAreas.includes(item.area)) return false;
+        if (selectedCabangs.length > 0 && !selectedCabangs.includes(item.cabang)) return false;
+        if (selectedUnits.length > 0 && !selectedUnits.includes(item.unit)) return false;
+        if (selectedProduks.length > 0 && !selectedProduks.includes(item.produk)) return false;
+        return true;
+      });
+    }
+
+    // Toggle Tampilan Dropdown Multi-Select
+    function toggleDropdown(id) {
+      const el = document.getElementById(id);
+      const isHidden = el.classList.contains('hidden');
+      closeAllDropdowns();
+      if (isHidden) {
+        el.classList.remove('hidden');
+      }
+    }
+
+    function closeAllDropdowns() {
+      ['areaDropdown', 'cabangDropdown', 'unitDropdown', 'produkDropdown'].forEach(d => {
+        const el = document.getElementById(d);
+        if (el) el.classList.add('hidden');
+      });
+    }
+
+    // Tutup dropdown saat klik di luar
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('#containerAreaDropdown') &&
+          !e.target.closest('#containerCabangDropdown') &&
+          !e.target.closest('#containerUnitDropdown') &&
+          !e.target.closest('#containerProdukDropdown')) {
+        closeAllDropdowns();
+      }
+    });
+
+    // Pencarian Filter Cepat di dalam List Dropdown
+    function filterDropdownSearch(listId, query) {
+      const q = (query || '').toLowerCase();
+      const items = document.querySelectorAll(`#${listId} label`);
+      items.forEach(it => {
+        const text = it.textContent.toLowerCase();
+        it.style.display = text.includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    // Inisialisasi Pilihan Dropdown Area
+    function renderAreaDropdownOptions() {
+      const areas = [...new Set(allRecords.map(r => r.area).filter(Boolean))].sort();
+      const listEl = document.getElementById('areaList');
+      listEl.innerHTML = '';
+
+      areas.forEach(a => {
+        const checked = selectedAreas.includes(a);
+        listEl.innerHTML += `
+          <label class="flex items-center space-x-2 px-2 py-1.5 hover:bg-slate-100 rounded text-xs cursor-pointer">
+            <input type="checkbox" value="${a}" ${checked ? 'checked' : ''} onchange="onFilterItemChange('area', '${a}', this.checked)" class="rounded text-blue-600 focus:ring-blue-500">
+            <span class="truncate">${a}</span>
+          </label>
+        `;
+      });
+      updateDropdownLabel('area');
+    }
+
+    // Inisialisasi Pilihan Dropdown Cabang (Kaskade berdasarkan Area terpilih)
+    function renderCabangDropdownOptions() {
+      const availableRows = allRecords.filter(r => selectedAreas.length === 0 || selectedAreas.includes(r.area));
+      const cabangs = [...new Set(availableRows.map(r => r.cabang).filter(Boolean))].sort();
+      
+      // Hapus cabang yang tidak lagi valid dari selectedCabangs
+      selectedCabangs = selectedCabangs.filter(c => cabangs.includes(c));
+
+      const listEl = document.getElementById('cabangList');
+      listEl.innerHTML = '';
+
+      cabangs.forEach(c => {
+        const checked = selectedCabangs.includes(c);
+        listEl.innerHTML += `
+          <label class="flex items-center space-x-2 px-2 py-1.5 hover:bg-slate-100 rounded text-xs cursor-pointer">
+            <input type="checkbox" value="${c}" ${checked ? 'checked' : ''} onchange="onFilterItemChange('cabang', '${c}', this.checked)" class="rounded text-blue-600 focus:ring-blue-500">
+            <span class="truncate">${c}</span>
+          </label>
+        `;
+      });
+      updateDropdownLabel('cabang');
+      renderUnitDropdownOptions();
+    }
+
+    // Inisialisasi Pilihan Dropdown Unit Kerja (Kaskade berdasarkan Cabang terpilih)
+    function renderUnitDropdownOptions() {
+      const availableRows = allRecords.filter(r => {
+        if (selectedAreas.length > 0 && !selectedAreas.includes(r.area)) return false;
+        if (selectedCabangs.length > 0 && !selectedCabangs.includes(r.cabang)) return false;
+        return true;
+      });
+      const units = [...new Set(availableRows.map(r => r.unit).filter(Boolean))].sort();
+
+      selectedUnits = selectedUnits.filter(u => units.includes(u));
+
+      const listEl = document.getElementById('unitList');
+      listEl.innerHTML = '';
+
+      units.forEach(u => {
+        const checked = selectedUnits.includes(u);
+        listEl.innerHTML += `
+          <label class="flex items-center space-x-2 px-2 py-1.5 hover:bg-slate-100 rounded text-xs cursor-pointer">
+            <input type="checkbox" value="${u}" ${checked ? 'checked' : ''} onchange="onFilterItemChange('unit', '${u}', this.checked)" class="rounded text-blue-600 focus:ring-blue-500">
+            <span class="truncate">${u}</span>
+          </label>
+        `;
+      });
+      updateDropdownLabel('unit');
+    }
+
+    // Inisialisasi Pilihan Dropdown Produk
+    function renderProdukDropdownOptions() {
+      const produks = [...new Set(allRecords.map(r => r.produk).filter(Boolean))].sort();
+      const listEl = document.getElementById('produkList');
+      listEl.innerHTML = '';
+
+      produks.forEach(p => {
+        const checked = selectedProduks.includes(p);
+        listEl.innerHTML += `
+          <label class="flex items-center space-x-2 px-2 py-1.5 hover:bg-slate-100 rounded text-xs cursor-pointer">
+            <input type="checkbox" value="${p}" ${checked ? 'checked' : ''} onchange="onFilterItemChange('produk', '${p}', this.checked)" class="rounded text-blue-600 focus:ring-blue-500">
+            <span class="truncate">${p}</span>
+          </label>
+        `;
+      });
+      updateDropdownLabel('produk');
+    }
+
+    // Handler Perubahan Item Checkbox
+    function onFilterItemChange(type, value, isChecked) {
+      if (type === 'area') {
+        if (isChecked) { if (!selectedAreas.includes(value)) selectedAreas.push(value); }
+        else { selectedAreas = selectedAreas.filter(v => v !== value); }
+        renderCabangDropdownOptions();
+      } else if (type === 'cabang') {
+        if (isChecked) { if (!selectedCabangs.includes(value)) selectedCabangs.push(value); }
+        else { selectedCabangs = selectedCabangs.filter(v => v !== value); }
+        renderUnitDropdownOptions();
+      } else if (type === 'unit') {
+        if (isChecked) { if (!selectedUnits.includes(value)) selectedUnits.push(value); }
+        else { selectedUnits = selectedUnits.filter(v => v !== value); }
+      } else if (type === 'produk') {
+        if (isChecked) { if (!selectedProduks.includes(value)) selectedProduks.push(value); }
+        else { selectedProduks = selectedProduks.filter(v => v !== value); }
+      }
+      updateDropdownLabel(type);
+      applyFilters();
+    }
+
+    // Tombol "Pilih Semua"
+    function selectAllFilter(type) {
+      if (type === 'area') {
+        selectedAreas = [...new Set(allRecords.map(r => r.area).filter(Boolean))];
+        renderAreaDropdownOptions();
+        renderCabangDropdownOptions();
+      } else if (type === 'cabang') {
+        const avail = allRecords.filter(r => selectedAreas.length === 0 || selectedAreas.includes(r.area));
+        selectedCabangs = [...new Set(avail.map(r => r.cabang).filter(Boolean))];
+        renderCabangDropdownOptions();
+      } else if (type === 'unit') {
+        const avail = allRecords.filter(r => {
+          if (selectedAreas.length > 0 && !selectedAreas.includes(r.area)) return false;
+          if (selectedCabangs.length > 0 && !selectedCabangs.includes(r.cabang)) return false;
+          return true;
+        });
+        selectedUnits = [...new Set(avail.map(r => r.unit).filter(Boolean))];
+        renderUnitDropdownOptions();
+      } else if (type === 'produk') {
+        selectedProduks = [...new Set(allRecords.map(r => r.produk).filter(Boolean))];
+        renderProdukDropdownOptions();
+      }
+      updateDropdownLabel(type);
+      applyFilters();
+    }
+
+    // Tombol "Hapus Semua"
+    function deselectAllFilter(type) {
+      if (type === 'area') {
+        selectedAreas = [];
+        renderAreaDropdownOptions();
+        renderCabangDropdownOptions();
+      } else if (type === 'cabang') {
+        selectedCabangs = [];
+        renderCabangDropdownOptions();
+      } else if (type === 'unit') {
+        selectedUnits = [];
+        renderUnitDropdownOptions();
+      } else if (type === 'produk') {
+        selectedProduks = [];
+        renderProdukDropdownOptions();
+      }
+      updateDropdownLabel(type);
+      applyFilters();
+    }
+
+    // Update Label Ringkasan Tombol Dropdown
+    function updateDropdownLabel(type) {
+      if (type === 'area') {
+        const lbl = document.getElementById('labelAreaSelect');
+        const count = selectedAreas.length;
+        lbl.textContent = count === 0 ? 'Semua Area' : (count === 1 ? selectedAreas[0] : `${count} Area Dipilih`);
+        if (count > 0) lbl.className = 'truncate font-bold text-blue-700';
+        else lbl.className = 'truncate font-medium text-slate-700';
+      } else if (type === 'cabang') {
+        const lbl = document.getElementById('labelCabangSelect');
+        const count = selectedCabangs.length;
+        lbl.textContent = count === 0 ? 'Semua Cabang' : (count === 1 ? selectedCabangs[0] : `${count} Cabang Dipilih`);
+        if (count > 0) lbl.className = 'truncate font-bold text-blue-700';
+        else lbl.className = 'truncate font-medium text-slate-700';
+      } else if (type === 'unit') {
+        const lbl = document.getElementById('labelUnitSelect');
+        const count = selectedUnits.length;
+        lbl.textContent = count === 0 ? 'Semua Unit Kerja' : (count === 1 ? selectedUnits[0] : `${count} Unit Dipilih`);
+        if (count > 0) lbl.className = 'truncate font-bold text-blue-700';
+        else lbl.className = 'truncate font-medium text-slate-700';
+      } else if (type === 'produk') {
+        const lbl = document.getElementById('labelProdukSelect');
+        const count = selectedProduks.length;
+        lbl.textContent = count === 0 ? 'Semua Produk' : (count === 1 ? selectedProduks[0] : `${count} Produk Dipilih`);
+        if (count > 0) lbl.className = 'truncate font-bold text-blue-700';
+        else lbl.className = 'truncate font-medium text-slate-700';
+      }
+    }
+
+    // Reset Semua Filter
+    function resetFilters() {
+      document.getElementById('filterTanggal').value = 'hariIni';
+      selectedAreas = [];
+      selectedCabangs = [];
+      selectedUnits = [];
+      selectedProduks = [];
+      renderAreaDropdownOptions();
+      renderCabangDropdownOptions();
+      renderUnitDropdownOptions();
+      renderProdukDropdownOptions();
+      applyFilters();
+      showToast('Seluruh filter telah direset ke default', true);
+    }
+
+    // Terapkan Filter & Render Ulang Komponen Dashboard
+    function applyFilters() {
+      const records = getFilteredRecords();
+      const activeDateFilter = document.getElementById('filterTanggal').value;
+      const isHariIni = activeDateFilter === 'hariIni';
+
+      // 1. Hitung Total Kemarin & Hari Ini
+      let totalKemarin = 0;
+      let totalHariIni = 0;
+      let u1 = 0, u2 = 0, u3 = 0, u4 = 0, u5 = 0, u6 = 0, u7 = 0;
+
+      records.forEach(r => {
+        totalKemarin += r.total_kemarin;
+        totalHariIni += r.total_hariIni;
+
+        if (isHariIni) {
+          u1 += r.u1_hariIni; u2 += r.u2_hariIni; u3 += r.u3_hariIni;
+          u4 += r.u4_hariIni; u5 += r.u5_hariIni; u6 += r.u6_hariIni; u7 += r.u7_hariIni;
+        } else {
+          u1 += r.u1_kemarin; u2 += r.u2_kemarin; u3 += r.u3_kemarin;
+          u4 += r.u4_kemarin; u5 += r.u5_kemarin; u6 += r.u6_kemarin; u7 += r.u7_kemarin;
+        }
+      });
+
+      const progresPenurunan = totalKemarin - totalHariIni;
+
+      // Hitung OSL secara fleksibel
+      let totalOsl = 0;
+      const filteredCabangs = [...new Set(records.map(r => r.cabang))];
+      const filteredUnits = [...new Set(records.map(r => r.unit))];
+      const areaTotalRow = oslRecords.find(o => o.isAreaTotal);
+
+      if (selectedCabangs.length === 0 && selectedUnits.length === 0) {
+        if (areaTotalRow && areaTotalRow.oslTotal > 0) {
+          totalOsl = areaTotalRow.oslTotal;
+        } else {
+          oslRecords.forEach(o => {
+            if (!o.isAreaTotal) totalOsl += (o.oslTotal || 0);
+          });
+        }
+      } else {
+        oslRecords.forEach(o => {
+          if (o.isAreaTotal) return;
+          const cName = (o.cabang || o.unit || '').trim().toUpperCase();
+          const cleanC = cName.replace(/^(CP|CABANG|KC|KCP|UP|UNIT)\s+/, '').trim();
+          const matchC = filteredCabangs.some(fc => {
+            const cleanFC = fc.replace(/^(CP|CABANG|KC|KCP|UP|UNIT)\s+/, '').trim();
+            return fc === cName || cleanFC === cleanC || fc.includes(cleanC) || cName.includes(cleanFC);
+          });
+          const matchU = filteredUnits.some(fu => fu === cName || fu.includes(cName) || cName.includes(fu));
+          if (matchC || matchU) {
+            totalOsl += (o.oslTotal || 0);
+          }
+        });
+      }
+
+      const currentBjdplTotal = isHariIni ? totalHariIni : totalKemarin;
+      const rasioBjdpl = totalOsl > 0 ? (currentBjdplTotal / totalOsl) * 100 : 0;
+
+      // Update KPI Cards
+      document.getElementById('kpiBjdplHariIni').textContent = formatRupiah(totalHariIni);
+      document.getElementById('kpiBjdplKemarin').textContent = formatRupiah(totalKemarin);
+
+      const kpiProgresEl = document.getElementById('kpiProgresPenurunan');
+      const kpiProgresBadge = document.getElementById('kpiBadgeProgres');
+      const kpiProgresDesc = document.getElementById('kpiProgresDesc');
+
+      kpiProgresEl.textContent = formatRupiah(progresPenurunan);
+      if (progresPenurunan > 0) {
+        kpiProgresEl.className = 'text-xl sm:text-2xl font-bold text-green-600 mt-2';
+        kpiProgresBadge.className = 'w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center text-sm';
+        kpiProgresBadge.innerHTML = '<i class="fa-solid fa-arrow-trend-down"></i>';
+        kpiProgresDesc.textContent = 'BJDPL berhasil turun (Kualitas membaik)';
+      } else if (progresPenurunan < 0) {
+        kpiProgresEl.className = 'text-xl sm:text-2xl font-bold text-red-600 mt-2';
+        kpiProgresBadge.className = 'w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center text-sm';
+        kpiProgresBadge.innerHTML = '<i class="fa-solid fa-arrow-trend-up"></i>';
+        kpiProgresDesc.textContent = 'BJDPL bertambah dibanding kemarin';
+      } else {
+        kpiProgresEl.className = 'text-xl sm:text-2xl font-bold text-slate-700 mt-2';
+        kpiProgresBadge.className = 'w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-sm';
+        kpiProgresBadge.innerHTML = '<i class="fa-solid fa-minus"></i>';
+        kpiProgresDesc.textContent = 'Tidak ada perubahan total BJDPL';
+      }
+
+      document.getElementById('kpiRasioBjdpl').textContent = formatPercent(rasioBjdpl);
+      document.getElementById('kpiOslTotalDesc').textContent = totalOsl > 0 ? ('OSL Total: ' + formatRupiah(totalOsl)) : 'Menunggu data Sheet Osl Total';
+
+      // Update 7 Kelompok Umur
+      document.getElementById('kpiUmur1').textContent = formatRupiah(u1);
+      document.getElementById('kpiUmur2').textContent = formatRupiah(u2);
+      document.getElementById('kpiUmur3').textContent = formatRupiah(u3);
+      document.getElementById('kpiUmur4').textContent = formatRupiah(u4);
+      document.getElementById('kpiUmur5').textContent = formatRupiah(u5);
+      document.getElementById('kpiUmur6').textContent = formatRupiah(u6);
+      document.getElementById('kpiUmur7').textContent = formatRupiah(u7);
+      document.getElementById('umurLabelActive').textContent = `Posisi Tanggal: ${isHariIni ? 'Hari Ini' : 'Kemarin'}`;
+
+      // Render Charts & Tables
+      renderCharts(records, [u1, u2, u3, u4, u5, u6, u7]);
+      renderEvalBjdplTable();
+      renderEvalRasioTable();
+      renderBjdplProdukTable();
+    }
+
+    // Render Grafik Chart.js
+    function renderCharts(records, umurBuckets) {
+      // 1. Chart Perbandingan BJDPL Kemarin vs Hari Ini
+      const cabangMap = {};
+      records.forEach(item => {
+        const c = item.cabang || 'Lainnya';
+        if (!cabangMap[c]) cabangMap[c] = { kemarin: 0, hariIni: 0 };
+        cabangMap[c].kemarin += item.total_kemarin;
+        cabangMap[c].hariIni += item.total_hariIni;
+      });
+
+      const labels = Object.keys(cabangMap);
+      const dataKemarin = labels.map(c => cabangMap[c].kemarin);
+      const dataHariIni = labels.map(c => cabangMap[c].hariIni);
+
+      const ctxBar = document.getElementById('chartKemarinHariIni').getContext('2d');
+      if (chartKemarinHariIniInstance) chartKemarinHariIniInstance.destroy();
+
+      chartKemarinHariIniInstance = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+          labels: labels.length ? labels : ['Belum Ada Data'],
+          datasets: [
+            {
+              label: 'BJDPL Kemarin',
+              data: dataKemarin.length ? dataKemarin : [0],
+              backgroundColor: '#94a3b8',
+              borderRadius: 6
+            },
+            {
+              label: 'BJDPL Hari Ini',
+              data: dataHariIni.length ? dataHariIni : [0],
+              backgroundColor: '#2563eb',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { font: { size: 11 } } },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + formatRupiah(context.raw);
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                font: { size: 10 },
+                callback: function(val) {
+                  if (val >= 1000000000) return (val / 1000000000).toFixed(1) + ' M';
+                  if (val >= 1000000) return (val / 1000000).toFixed(0) + ' Jt';
+                  return val;
+                }
+              }
+            },
+            x: { ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+
+      // 2. Chart Komposisi Kelompok Umur
+      const ctxPie = document.getElementById('chartKelompokUmur').getContext('2d');
+      if (chartKelompokUmurInstance) chartKelompokUmurInstance.destroy();
+
+      chartKelompokUmurInstance = new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+          labels: ['1-15 Hari', '16-30 Hari', '31-45 Hari', '46-60 Hari', '61-75 Hari', '76-90 Hari', '> 90 Hari'],
+          datasets: [{
+            data: umurBuckets,
+            backgroundColor: [
+              '#10b981', '#0284c7', '#f59e0b', '#f97316', '#ea580c', '#f43f5e', '#dc2626'
+            ],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const val = context.raw || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const pct = total > 0 ? ((val / total) * 100).toFixed(1) + '%' : '0%';
+                  return context.label + ': ' + formatRupiah(val) + ' (' + pct + ')';
+                }
+              }
+            }
+          },
+          cutout: '65%'
+        }
+      });
+    }
+
+    // Render Tabel Evaluasi BJDPL (Page 2)
+    function renderEvalBjdplTable() {
+      const records = getFilteredRecords();
+      const searchTerm = (document.getElementById('searchEvalBjdpl').value || '').toLowerCase();
+      const tbody = document.getElementById('tableEvalBjdplBody');
+      const tfoot = document.getElementById('tableEvalBjdplFoot');
+
+      const activeDateFilter = document.getElementById('filterTanggal').value;
+      const isHariIni = activeDateFilter === 'hariIni';
+
+      const mapData = {};
+
+      records.forEach(row => {
+        const key = row.unit || row.cabang;
+        if (!mapData[key]) {
+          mapData[key] = {
+            unit: key,
+            cabang: row.cabang,
+            area: row.area,
+            u1: 0, u2: 0, u3: 0, u4: 0, u5: 0, u6: 0, u7: 0,
+            kemarinTotal: 0,
+            hariIniTotal: 0
+          };
+        }
+        mapData[key].kemarinTotal += row.total_kemarin;
+        mapData[key].hariIniTotal += row.total_hariIni;
+
+        if (isHariIni) {
+          mapData[key].u1 += row.u1_hariIni; mapData[key].u2 += row.u2_hariIni;
+          mapData[key].u3 += row.u3_hariIni; mapData[key].u4 += row.u4_hariIni;
+          mapData[key].u5 += row.u5_hariIni; mapData[key].u6 += row.u6_hariIni;
+          mapData[key].u7 += row.u7_hariIni;
+        } else {
+          mapData[key].u1 += row.u1_kemarin; mapData[key].u2 += row.u2_kemarin;
+          mapData[key].u3 += row.u3_kemarin; mapData[key].u4 += row.u4_kemarin;
+          mapData[key].u5 += row.u5_kemarin; mapData[key].u6 += row.u6_kemarin;
+          mapData[key].u7 += row.u7_kemarin;
+        }
+      });
+
+      const list = Object.values(mapData).filter(item => {
+        if (!searchTerm) return true;
+        return item.unit.toLowerCase().includes(searchTerm) ||
+               item.cabang.toLowerCase().includes(searchTerm) ||
+               item.area.toLowerCase().includes(searchTerm);
+      });
+
+      tbody.innerHTML = '';
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center p-6 text-slate-400">Tidak ada data ditemukan</td></tr>';
+        tfoot.innerHTML = '';
+        return;
+      }
+
+      let grand = { u1: 0, u2: 0, u3: 0, u4: 0, u5: 0, u6: 0, u7: 0, kemarin: 0, hariIni: 0 };
+
+      list.forEach(item => {
+        const selisih = item.kemarinTotal - item.hariIniTotal;
+        grand.u1 += item.u1; grand.u2 += item.u2; grand.u3 += item.u3;
+        grand.u4 += item.u4; grand.u5 += item.u5; grand.u6 += item.u6; grand.u7 += item.u7;
+        grand.kemarin += item.kemarinTotal; grand.hariIni += item.hariIniTotal;
+
+        const badgeProgres = selisih > 0 ? `<span class="inline-flex items-center text-[10px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded font-bold"><i class="fa-solid fa-arrow-down mr-1"></i>${formatRupiah(selisih)}</span>`
+                                         : (selisih < 0 ? `<span class="inline-flex items-center text-[10px] bg-red-50 text-red-700 px-1.5 py-0.5 rounded font-bold"><i class="fa-solid fa-arrow-up mr-1"></i>${formatRupiah(Math.abs(selisih))}</span>`
+                                                        : `<span class="text-slate-400">-</span>`);
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+            <td class="p-3 font-medium text-slate-800">
+              <div class="font-bold">${item.unit}</div>
+              <div class="text-[10px] text-slate-400">${item.cabang}</div>
+            </td>
+            <td class="p-3 text-right">${formatRupiah(item.u1)}</td>
+            <td class="p-3 text-right">${formatRupiah(item.u2)}</td>
+            <td class="p-3 text-right">${formatRupiah(item.u3)}</td>
+            <td class="p-3 text-right bg-orange-50/40">${formatRupiah(item.u4)}</td>
+            <td class="p-3 text-right bg-orange-50/40">${formatRupiah(item.u5)}</td>
+            <td class="p-3 text-right bg-red-50/40">${formatRupiah(item.u6)}</td>
+            <td class="p-3 text-right bg-red-50/40">${formatRupiah(item.u7)}</td>
+            <td class="p-3 text-right font-medium text-slate-600">${formatRupiah(item.kemarinTotal)}</td>
+            <td class="p-3 text-right font-bold text-slate-900">${formatRupiah(item.hariIniTotal)}</td>
+            <td class="p-3 text-right">${badgeProgres}</td>
+          </tr>
+        `;
+      });
+
+      const grandSelisih = grand.kemarin - grand.hariIni;
+      tfoot.innerHTML = `
+        <tr>
+          <td class="p-3 uppercase">TOTAL KESELURUHAN</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u1)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u2)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u3)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u4)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u5)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u6)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u7)}</td>
+          <td class="p-3 text-right font-bold">${formatRupiah(grand.kemarin)}</td>
+          <td class="p-3 text-right font-bold">${formatRupiah(grand.hariIni)}</td>
+          <td class="p-3 text-right font-bold ${grandSelisih >= 0 ? 'text-green-700' : 'text-red-700'}">
+            ${grandSelisih >= 0 ? 'Turun: ' + formatRupiah(grandSelisih) : 'Naik: ' + formatRupiah(Math.abs(grandSelisih))}
+          </td>
+        </tr>
+      `;
+    }
+
+    // Render Tabel Evaluasi Rasio BJDPL per CABANG (Page 3 — khusus Area Gorontalo)
+    function renderEvalRasioTable() {
+      const records = getFilteredRecords();
+      const searchTerm = (document.getElementById('searchEvalRasio').value || '').toLowerCase();
+      const tbody = document.getElementById('tableEvalRasioBody');
+      const tfoot = document.getElementById('tableEvalRasioFoot');
+
+      const activeDateFilter = document.getElementById('filterTanggal').value;
+      const isHariIni = activeDateFilter === 'hariIni';
+
+      // Agregasi per CABANG (bukan per Unit Kerja)
+      const mapUnit = {};
+
+      records.forEach(row => {
+        const key = row.cabang || 'CABANG LAINNYA';
+        if (!mapUnit[key]) {
+          mapUnit[key] = {
+            unit: key,
+            cabang: key,
+            u1: 0, u2: 0, u3: 0, u4: 0, u5: 0, u6: 0, u7: 0,
+            bjdplTotal: 0,
+            oslTotal: 0
+          };
+        }
+
+        if (isHariIni) {
+          mapUnit[key].u1 += row.u1_hariIni; mapUnit[key].u2 += row.u2_hariIni;
+          mapUnit[key].u3 += row.u3_hariIni; mapUnit[key].u4 += row.u4_hariIni;
+          mapUnit[key].u5 += row.u5_hariIni; mapUnit[key].u6 += row.u6_hariIni;
+          mapUnit[key].u7 += row.u7_hariIni;
+          mapUnit[key].bjdplTotal += row.total_hariIni;
+        } else {
+          mapUnit[key].u1 += row.u1_kemarin; mapUnit[key].u2 += row.u2_kemarin;
+          mapUnit[key].u3 += row.u3_kemarin; mapUnit[key].u4 += row.u4_kemarin;
+          mapUnit[key].u5 += row.u5_kemarin; mapUnit[key].u6 += row.u6_kemarin;
+          mapUnit[key].u7 += row.u7_kemarin;
+          mapUnit[key].bjdplTotal += row.total_kemarin;
+        }
+      });
+
+      // Daftarkan seluruh cabang dari Sheet Osl Total jika belum ada di mapUnit
+      oslRecords.forEach(row => {
+        if (row.isAreaTotal) return;
+        const cKey = (row.cabang || row.unit || '').trim().toUpperCase();
+        if (!cKey) return;
+
+        let existingKey = null;
+        if (mapUnit[cKey]) {
+          existingKey = cKey;
+        } else {
+          const cleanRaw = cKey.replace(/^(CP|CABANG|KC|KCP|UP|UNIT)\s+/, '').trim();
+          for (let k in mapUnit) {
+            const cleanK = k.replace(/^(CP|CABANG|KC|KCP|UP|UNIT)\s+/, '').trim();
+            if (k === cKey || cleanK === cleanRaw || k.includes(cleanRaw) || cKey.includes(cleanK)) {
+              existingKey = k;
+              break;
+            }
+          }
+        }
+
+        if (existingKey) {
+          mapUnit[existingKey].oslTotal = (row.oslTotal || 0);
+        } else if (selectedCabangs.length === 0 || selectedCabangs.some(sc => sc === cKey || cKey.includes(sc) || sc.includes(cKey))) {
+          mapUnit[cKey] = {
+            unit: cKey,
+            cabang: cKey,
+            u1: 0, u2: 0, u3: 0, u4: 0, u5: 0, u6: 0, u7: 0,
+            bjdplTotal: 0,
+            oslTotal: (row.oslTotal || 0)
+          };
+        }
+      });
+
+      const list = Object.values(mapUnit).filter(item => {
+        if (!searchTerm) return true;
+        return item.cabang.toLowerCase().includes(searchTerm) || item.unit.toLowerCase().includes(searchTerm);
+      }).sort((a, b) => a.cabang.localeCompare(b.cabang));
+
+      tbody.innerHTML = '';
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" class="text-center p-6 text-slate-400">Tidak ada data ditemukan</td></tr>';
+        tfoot.innerHTML = '';
+        return;
+      }
+
+      let grand = { oslTotal: 0, u1: 0, u2: 0, u3: 0, u4: 0, u5: 0, u6: 0, u7: 0, bjdplTotal: 0 };
+
+      list.forEach(item => {
+        // OSL Lancar = OSL Total - Total BJDPL
+        const oslLancar = Math.max(0, item.oslTotal - item.bjdplTotal);
+        const rasio = item.oslTotal > 0 ? (item.bjdplTotal / item.oslTotal) * 100 : 0;
+
+        grand.oslTotal += item.oslTotal;
+        grand.u1 += item.u1;
+        grand.u2 += item.u2;
+        grand.u3 += item.u3;
+        grand.u4 += item.u4;
+        grand.u5 += item.u5;
+        grand.u6 += item.u6;
+        grand.u7 += item.u7;
+        grand.bjdplTotal += item.bjdplTotal;
+
+        const rasioColor = rasio > 5 ? 'text-red-600 bg-red-50' : (rasio > 3 ? 'text-amber-600 bg-amber-50' : 'text-blue-600 bg-blue-50');
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+            <td class="p-3 font-medium text-slate-800">
+              <div class="font-bold">${item.cabang}</div>
+            </td>
+            <td class="p-3 text-right font-medium">${formatRupiah(item.oslTotal)}</td>
+            <td class="p-3 text-right text-slate-600 font-medium">${formatRupiah(oslLancar)}</td>
+            <td class="p-3 text-right">${formatRupiah(item.u1)}</td>
+            <td class="p-3 text-right">${formatRupiah(item.u2)}</td>
+            <td class="p-3 text-right">${formatRupiah(item.u3)}</td>
+            <td class="p-3 text-right bg-orange-50/50">${formatRupiah(item.u4)}</td>
+            <td class="p-3 text-right bg-orange-50/50">${formatRupiah(item.u5)}</td>
+            <td class="p-3 text-right bg-red-50/50">${formatRupiah(item.u6)}</td>
+            <td class="p-3 text-right bg-red-50/50 font-medium text-rose-900">${formatRupiah(item.u7)}</td>
+            <td class="p-3 text-right font-bold text-slate-900">${formatRupiah(item.bjdplTotal)}</td>
+            <td class="p-3 text-right">
+              <span class="inline-block px-2 py-0.5 rounded font-bold text-[11px] ${rasioColor}">
+                ${formatPercent(rasio)}
+              </span>
+            </td>
+          </tr>
+        `;
+      });
+
+      const grandOslLancar = Math.max(0, grand.oslTotal - grand.bjdplTotal);
+      const grandRasio = grand.oslTotal > 0 ? (grand.bjdplTotal / grand.oslTotal) * 100 : 0;
+
+      tfoot.innerHTML = `
+        <tr>
+          <td class="p-3 uppercase font-bold">TOTAL AREA GORONTALO</td>
+          <td class="p-3 text-right font-bold">${formatRupiah(grand.oslTotal)}</td>
+          <td class="p-3 text-right font-bold text-slate-700">${formatRupiah(grandOslLancar)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u1)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u2)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u3)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u4)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u5)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u6)}</td>
+          <td class="p-3 text-right font-bold text-rose-900">${formatRupiah(grand.u7)}</td>
+          <td class="p-3 text-right font-bold">${formatRupiah(grand.bjdplTotal)}</td>
+          <td class="p-3 text-right font-bold text-blue-700">${formatPercent(grandRasio)}</td>
+        </tr>
+      `;
+    }
+
+    // Render Tabel BJDPL per Produk (Page 4)
+    function renderBjdplProdukTable() {
+      const records = getFilteredRecords();
+      const searchTerm = (document.getElementById('searchBjdplProduk').value || '').toLowerCase();
+      const tbody = document.getElementById('tableBjdplProdukBody');
+      const tfoot = document.getElementById('tableBjdplProdukFoot');
+
+      const activeDateFilter = document.getElementById('filterTanggal').value;
+      const isHariIni = activeDateFilter === 'hariIni';
+
+      const mapProduk = {};
+
+      records.forEach(row => {
+        const key = `${row.cabang} - ${row.produk}`;
+        if (!mapProduk[key]) {
+          mapProduk[key] = {
+            cabang: row.cabang,
+            produk: row.produk,
+            area: row.area,
+            u1: 0, u2: 0, u3: 0, u4: 0, u5: 0, u6: 0, u7: 0,
+            grandTotal: 0
+          };
+        }
+
+        if (isHariIni) {
+          mapProduk[key].u1 += row.u1_hariIni; mapProduk[key].u2 += row.u2_hariIni;
+          mapProduk[key].u3 += row.u3_hariIni; mapProduk[key].u4 += row.u4_hariIni;
+          mapProduk[key].u5 += row.u5_hariIni; mapProduk[key].u6 += row.u6_hariIni;
+          mapProduk[key].u7 += row.u7_hariIni;
+          mapProduk[key].grandTotal += row.total_hariIni;
+        } else {
+          mapProduk[key].u1 += row.u1_kemarin; mapProduk[key].u2 += row.u2_kemarin;
+          mapProduk[key].u3 += row.u3_kemarin; mapProduk[key].u4 += row.u4_kemarin;
+          mapProduk[key].u5 += row.u5_kemarin; mapProduk[key].u6 += row.u6_kemarin;
+          mapProduk[key].u7 += row.u7_kemarin;
+          mapProduk[key].grandTotal += row.total_kemarin;
+        }
+      });
+
+      const list = Object.values(mapProduk).filter(item => {
+        if (!searchTerm) return true;
+        return item.cabang.toLowerCase().includes(searchTerm) ||
+               item.produk.toLowerCase().includes(searchTerm) ||
+               item.area.toLowerCase().includes(searchTerm);
+      });
+
+      tbody.innerHTML = '';
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center p-6 text-slate-400">Tidak ada data ditemukan</td></tr>';
+        tfoot.innerHTML = '';
+        return;
+      }
+
+      let grand = { u1: 0, u2: 0, u3: 0, u4: 0, u5: 0, u6: 0, u7: 0, total: 0 };
+
+      list.forEach(item => {
+        grand.u1 += item.u1; grand.u2 += item.u2; grand.u3 += item.u3;
+        grand.u4 += item.u4; grand.u5 += item.u5; grand.u6 += item.u6; grand.u7 += item.u7;
+        grand.total += item.grandTotal;
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+            <td class="p-3 font-medium text-slate-800">
+              <span class="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 font-bold rounded text-[11px] mr-1.5">${item.produk}</span>
+              <span class="font-semibold text-slate-700">${item.cabang}</span>
+            </td>
+            <td class="p-3 text-right">${formatRupiah(item.u1)}</td>
+            <td class="p-3 text-right">${formatRupiah(item.u2)}</td>
+            <td class="p-3 text-right">${formatRupiah(item.u3)}</td>
+            <td class="p-3 text-right bg-orange-50/40">${formatRupiah(item.u4)}</td>
+            <td class="p-3 text-right bg-orange-50/40">${formatRupiah(item.u5)}</td>
+            <td class="p-3 text-right bg-red-50/40">${formatRupiah(item.u6)}</td>
+            <td class="p-3 text-right bg-red-50/40">${formatRupiah(item.u7)}</td>
+            <td class="p-3 text-right font-bold text-slate-900">${formatRupiah(item.grandTotal)}</td>
+          </tr>
+        `;
+      });
+
+      tfoot.innerHTML = `
+        <tr>
+          <td class="p-3 uppercase">TOTAL KESELURUHAN</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u1)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u2)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u3)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u4)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u5)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u6)}</td>
+          <td class="p-3 text-right">${formatRupiah(grand.u7)}</td>
+          <td class="p-3 text-right font-bold">${formatRupiah(grand.total)}</td>
+        </tr>
+      `;
+    }
+
+    // Navigasi Pindah Tab Halaman
+    function switchPage(pageId, event) {
+      if (event) event.preventDefault();
+      currentPage = pageId;
+
+      document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+      const activePage = document.getElementById('page-' + pageId);
+      if (activePage) activePage.classList.remove('hidden');
+
+      const navIds = ['dashboard', 'eval-bjdpl', 'eval-rasio', 'bjdpl-produk'];
+      navIds.forEach(id => {
+        const link = document.getElementById('nav-' + id);
+        if (link) {
+          if (id === pageId) {
+            link.classList.add('nav-item-active');
+            link.classList.remove('text-slate-300', 'hover:bg-slate-800');
+          } else {
+            link.classList.remove('nav-item-active');
+            link.classList.add('text-slate-300', 'hover:bg-slate-800');
+          }
+        }
+      });
+
+      const titles = {
+        'dashboard': 'Dashboard Monitoring BJDPL',
+        'eval-bjdpl': 'Evaluasi BJDPL per Area & Cabang',
+        'eval-rasio': 'Evaluasi Rasio BJDPL terhadap OSL Total',
+        'bjdpl-produk': 'BJDPL per Produk & Hierarki Unit Kerja'
+      };
+      document.getElementById('pageTitle').textContent = titles[pageId] || 'Dashboard BJDPL';
+
+      closeMobileSidebar();
+
+      if (pageId === 'eval-bjdpl') renderEvalBjdplTable();
+      if (pageId === 'eval-rasio') renderEvalRasioTable();
+      if (pageId === 'bjdpl-produk') renderBjdplProdukTable();
+    }
+
+    // Toggle Mobile Sidebar
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('mainSidebar');
+      const backdrop = document.getElementById('mobileBackdrop');
+      const isHidden = sidebar.classList.contains('-translate-x-full');
+      if (isHidden) {
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+      }
+    }
+
+    function closeMobileSidebar() {
+      const sidebar = document.getElementById('mainSidebar');
+      const backdrop = document.getElementById('mobileBackdrop');
+      sidebar.classList.add('-translate-x-full');
+      backdrop.classList.add('hidden');
+    }
+
+    // Tampilkan Notifikasi Toast
+    function showToast(message, isSuccess = true) {
+      const toast = document.getElementById('toastNotification');
+      const msg = document.getElementById('toastMessage');
+      const icon = document.getElementById('toastIcon');
+
+      msg.textContent = message;
+      if (isSuccess) {
+        icon.className = 'fa-solid fa-circle-check text-emerald-400';
+      } else {
+        icon.className = 'fa-solid fa-triangle-exclamation text-rose-400';
+      }
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
+
+    // Refresh Data dari Spreadsheet
+    function refreshData() {
+      const refreshIcon = document.getElementById('refreshIcon');
+      refreshIcon.classList.add('fa-spin');
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            refreshIcon.classList.remove('fa-spin');
+            if (response && response.success) {
+              allRecords = response.records || [];
+              oslRecords = response.osl || [];
+              if (response.lastUpdated) {
+                document.getElementById('lastUpdatedText').textContent = response.lastUpdated;
+              }
+              if (allRecords.length > 0 && allRecords[0].area) {
+                document.getElementById('sidebarAreaLabel').textContent = allRecords[0].area;
+              }
+              renderAreaDropdownOptions();
+              renderCabangDropdownOptions();
+              renderUnitDropdownOptions();
+              renderProdukDropdownOptions();
+              applyFilters();
+              showToast(`Data berhasil disingkronkan (${allRecords.length} unit/produk)`, true);
+            } else {
+              showToast(response.message || 'Gagal memuat data spreadsheet', false);
+            }
+          })
+          .withFailureHandler(function(err) {
+            refreshIcon.classList.remove('fa-spin');
+            showToast('Koneksi Apps Script Gagal: ' + err.message, false);
+          })
+          .fetchDashboardData();
+      } else {
+        // Fallback Demo Data Sesuai Tangkapan Layar (Area Manado) untuk Pengujian Standalone
+        setTimeout(() => {
+          refreshIcon.classList.remove('fa-spin');
+          loadMockDemoDataFromScreenshot();
+          renderAreaDropdownOptions();
+          renderCabangDropdownOptions();
+          renderUnitDropdownOptions();
+          renderProdukDropdownOptions();
+          applyFilters();
+          document.getElementById('lastUpdatedText').textContent = 'Pratinjau Lokal (Data Screenshot)';
+          showToast('Data simulasi sesuai spreadsheet berhasil dimuat', true);
+        }, 400);
+      }
+    }
+
+    // Inisialisasi Database
+    function runSetupDatabase() {
+      if (confirm('Jalankan inisialisasi sheet database?')) {
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler(function(res) {
+              showToast(res.message, res.success);
+              if (res.success) refreshData();
+            })
+            .withFailureHandler(function(err) {
+              showToast('Error: ' + err.message, false);
+            })
+            .setupDatabase();
+        } else {
+          showToast('Inisialisasi sheet database aktif di Google Sheets.', true);
+        }
+      }
+    }
+
+    // Mock Data Presisi Berdasarkan Gambar Spreadsheet Pengguna
+    function loadMockDemoDataFromScreenshot() {
+      allRecords = [
+        {
+          area: 'AREA MANADO', cabang: 'CP MANADO', unit: 'CP MANADO', produk: 'GADAI AGEN',
+          u1_hariIni: 0, u2_hariIni: 0, u3_hariIni: 0, u4_hariIni: 0, u5_hariIni: 0, u6_hariIni: 0, u7_hariIni: 0,
+          total_hariIni: 0,
+          u1_kemarin: 10300000, u2_kemarin: 10300000, u3_kemarin: 0, u4_kemarin: 17010000, u5_kemarin: 69190000, u6_kemarin: 69190000, u7_kemarin: 0,
+          total_kemarin: 173710000
+        },
+        {
+          area: 'AREA MANADO', cabang: 'CP MANADO', unit: 'CP MANADO', produk: 'GADAI FLEXI',
+          u1_hariIni: 14610000, u2_hariIni: 14460000, u3_hariIni: 24410000, u4_hariIni: 46890000, u5_hariIni: 33430000, u6_hariIni: 80940000, u7_hariIni: 0,
+          total_hariIni: 214840000,
+          u1_kemarin: 14460000, u2_kemarin: 24410000, u3_kemarin: 46890000, u4_kemarin: 55450000, u5_kemarin: 80940000, u6_kemarin: 0, u7_kemarin: 0,
+          total_kemarin: 222150000
+        },
+        {
+          area: 'AREA MANADO', cabang: 'CP MANADO', unit: 'CP MANADO', produk: 'GADAI KCA',
+          u1_hariIni: 3582910000, u2_hariIni: 1897510000, u3_hariIni: 2341067000, u4_hariIni: 1143750000, u5_hariIni: 3003060000, u6_hariIni: 1857515000, u7_hariIni: 0,
+          total_hariIni: 13825812000,
+          u1_kemarin: 213980000, u2_kemarin: 2397684100, u3_kemarin: 1147340000, u4_hariIni: 3031320000, u5_kemarin: 1859054000, u6_kemarin: 0, u7_kemarin: 0,
+          total_kemarin: 8649378100
+        },
+        {
+          area: 'AREA MANADO', cabang: 'CP MANADO', unit: 'CP MANADO', produk: 'MULIA TABUNGAN EMAS',
+          u1_hariIni: 9642111, u2_hariIni: 11860000, u3_hariIni: 88070000, u4_hariIni: 32460000, u5_hariIni: 170750000, u6_hariIni: 377403200, u7_hariIni: 99996329,
+          total_hariIni: 708316740,
+          u1_kemarin: 9237935, u2_kemarin: 105570000, u3_kemarin: 324600000, u4_kemarin: 170750000, u5_kemarin: 379408200, u6_kemarin: 0, u7_kemarin: 0,
+          total_kemarin: 989566135
+        },
+        {
+          area: 'AREA MANADO', cabang: 'CP MANADO', unit: 'CP MANADO', produk: 'MULIA ULTIMATE KONVEN',
+          u1_hariIni: 24455688, u2_hariIni: 6090500, u3_hariIni: 21494382, u4_hariIni: 19560120, u5_hariIni: 47268074, u6_hariIni: 7019300, u7_hariIni: 193502490,
+          total_hariIni: 319390554,
+          u1_kemarin: 33751498, u2_kemarin: 5960054, u3_kemarin: 19560120, u4_kemarin: 40655787, u5_kemarin: 38760211, u6_kemarin: 2385100, u7_kemarin: 188689790,
+          total_kemarin: 329762560
+        },
+        {
+          area: 'AREA MANADO', cabang: 'CP MANADO', unit: 'CP MANADO', produk: 'KRASIDA',
+          u1_hariIni: 0, u2_hariIni: 31461328, u3_hariIni: 0, u4_hariIni: 33000000, u5_hariIni: 10222200, u6_hariIni: 0, u7_hariIni: 116633000,
+          total_hariIni: 191316528,
+          u1_kemarin: 0, u2_kemarin: 44582644, u3_kemarin: 0, u4_kemarin: 43222200, u5_kemarin: 0, u6_kemarin: 59400000, u7_kemarin: 57233000,
+          total_kemarin: 204437844
+        },
+        {
+          area: 'AREA MANADO', cabang: 'CP MANADO', unit: 'UPC CALACA', produk: 'GADAI KCA',
+          u1_hariIni: 525310000, u2_hariIni: 341200000, u3_hariIni: 221500000, u4_hariIni: 165000000, u5_hariIni: 128000000, u6_hariIni: 98000000, u7_hariIni: 185000000,
+          total_hariIni: 1664010000,
+          u1_kemarin: 406450000, u2_kemarin: 360000000, u3_kemarin: 240000000, u4_kemarin: 180000000, u5_kemarin: 140000000, u6_kemarin: 110000000, u7_kemarin: 195000000,
+          total_kemarin: 1631450000
+        },
+        {
+          area: 'AREA MANADO', cabang: 'CP MANADO', unit: 'UPC CALACA', produk: 'GADAI FLEXI',
+          u1_hariIni: 20110000, u2_hariIni: 14200000, u3_hariIni: 11500000, u4_hariIni: 8500000, u5_hariIni: 6200000, u6_hariIni: 4800000, u7_hariIni: 9100000,
+          total_hariIni: 74410000,
+          u1_kemarin: 89200000, u2_kemarin: 18000000, u3_kemarin: 13000000, u4_kemarin: 9500000, u5_kemarin: 7000000, u6_kemarin: 5500000, u7_kemarin: 10200000,
+          total_kemarin: 152400000
+        }
+      ];
+
+      oslRecords = [
+        { area: 'AREA MANADO', cabang: 'CP MANADO', unit: 'CP MANADO', oslTotal: 185000000000, oslLancar: 172000000000 },
+        { area: 'AREA MANADO', cabang: 'CP MANADO', unit: 'UPC CALACA', oslTotal: 42000000000, oslLancar: 39500000000 }
+      ];
+    }
+
+    // Auto Run Saat Dokumen Selesai Dimuat
+    document.addEventListener('DOMContentLoaded', function() {
+      refreshData();
+    });
+  </script>
+</body>
+</html>
